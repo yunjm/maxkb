@@ -1,30 +1,31 @@
-# Tasks
- - [x] Task 1: 基础设施与依赖准备
-   - [x] SubTask 1.1: 在后端（Spring Boot 4）引入向量数据库（如 pgvector/Milvus）依赖及相关配置。
-   - [x] SubTask 1.2: 引入文本解析与分段处理库（参考MaxKB4j依赖，如Apache PDFBox, POI等）。
-   - [x] SubTask 1.3: 引入 Embedding 模型的 API 客户端或本地调用逻辑。
- - [x] Task 2: 知识库管理模块 (后端实现)
-   - [x] SubTask 2.1: 设计并创建知识库（Knowledge Base）、文档（Document）、分段（Segment）的数据库表结构及若依实体类。
-   - [x] SubTask 2.2: 实现知识库的 CRUD 接口，并集成至若依权限体系。
-   - [x] SubTask 2.3: 实现文件上传、解析、切分（Chunking）的异步处理逻辑与状态流转。
-   - [x] SubTask 2.4: 实现文本向量化（Embedding）并存入向量数据库的持久化逻辑。
-   - [x] SubTask 2.5: 实现针对特定知识库的命中测试（Hit Testing）检索接口。
- - [x] Task 3: 知识库管理模块 (前端实现 - ruoyi Vue3)
-   - [x] SubTask 3.1: 在前端新增“知识库管理”菜单及列表视图。
-   - [x] SubTask 3.2: 实现知识库创建、配置详情及基本设置页面。
-   - [x] SubTask 3.3: 实现文档数据集上传、解析状态查看与重试页面。
-   - [x] SubTask 3.4: 实现分段内容查看、手动修改与命中测试页面。
- - [x] Task 4: 智能体管理功能重构与扩展
-   - [x] SubTask 4.1: 修改智能体数据表，增加与知识库的多对多关联表（Agent-Knowledge_Base）。
-   - [x] SubTask 4.2: 修改后端智能体 CRUD 接口，支持保存知识库关联关系及检索参数（相似度阈值、Top-K等）。
-   - [x] SubTask 4.3: 调整前端“智能体管理”表单，增加知识库下拉多选组件与RAG参数配置面板。
- - [x] Task 5: 核心 RAG 日志分析链路对接
-   - [x] SubTask 5.1: 封装基于用户输入和所选知识库的联合向量检索服务。
-   - [x] SubTask 5.2: 重构现有的模型对话接口，注入检索到的运维日志上下文并构建 RAG Prompt。
-   - [x] SubTask 5.3: 在前端分析聊天界面，增加“引用来源（Citations）”展示功能，方便用户回溯原始日志或手册。
+# 全场景AI日志分析平台 - RAG功能开发 Tasks
 
-# Task Dependencies
-- [Task 2] depends on [Task 1]
-- [Task 3] depends on [Task 2]
-- [Task 4] depends on [Task 2]
-- [Task 5] depends on [Task 4]
+## Phase 1: 数据库与基础设施搭建
+- [ ] Task 1.1: 执行 SQL 脚本，创建 MySQL 关系表 (`ai_knowledge_base`, `ai_kb_document`, `ai_kb_segment`, `ai_agent_kb_relation`)。
+- [ ] Task 1.2: 部署并初始化向量数据库（推荐 Milvus 或 PostgreSQL+pgvector），创建对应的 Collection/Table 及向量索引。
+- [ ] Task 1.3: 在 Spring Boot `pom.xml` 中引入 `langchain4j`, `langchain4j-document-parser-apache-pdfbox`, 及对应的向量库 SDK。
+- [ ] Task 1.4: 在 `application.yml` 中配置向量数据库连接信息及 Embedding 模型的 API Key。
+
+## Phase 2: 后端核心业务开发 (Spring Boot 4)
+- [ ] Task 2.1: 使用若依代码生成器，生成 MySQL 四张表的基础 Entity, Mapper, Service, Controller 代码。
+- [ ] Task 2.2: 实现 `IDocumentPipelineService`，编写文档读取、文本切分（RecursiveCharacterTextSplitter）逻辑。
+- [ ] Task 2.3: 实现 Embedding 调用逻辑，对接向量数据库完成文本向量的入库操作。
+- [ ] Task 2.4: 将文档解析、向量化过程封装为异步任务（或使用消息队列），并在任务节点更新 `ai_kb_document` 的状态。
+- [ ] Task 2.5: 实现 `IRetrievalService`，编写根据 Query 生成向量并在向量库中召回 Top-K 的查询接口。
+- [ ] Task 2.6: 实现命中测试 API `/ai/kb/hit-test`，返回召回的分段文本与相似度得分。
+- [ ] Task 2.7: 重构现有的 `Agent` 增删改查接口，支持关联关系的级联保存与更新。
+- [ ] Task 2.8: 重构大模型对话接口：在提问前拦截，调用 `IRetrievalService` 获取上下文，拼接 RAG Prompt 后请求大模型，并将引用数据随响应返回。
+
+## Phase 3: 前端业务开发 (Vue3 + Element Plus)
+- [ ] Task 3.1: 路由与菜单配置：在若依管理后台添加“知识库管理”及其子页面的路由和菜单。
+- [ ] Task 3.2: 开发 `views/ai/kb/index.vue`（知识库列表页）。
+- [ ] Task 3.3: 开发 `views/ai/kb/dataset.vue`（文档列表页），集成带进度条和切分参数配置的上传组件。
+- [ ] Task 3.4: 开发 `views/ai/kb/segment.vue`（分段详情页），支持分段内容的查看与手动编辑更新。
+- [ ] Task 3.5: 开发 `views/ai/kb/hitTest.vue`（命中测试页），实现输入文本与展示召回结果卡片的交互。
+- [ ] Task 3.6: 修改 `views/ai/agent/index.vue`（智能体管理页），增加知识库多选下拉框及 RAG 参数（阈值、TopK）配置表单。
+- [ ] Task 3.7: 修改 `views/ai/chat/index.vue`（对话分析控制台），在 AI 聊天气泡UI中渲染“引用来源”组件。
+
+## Phase 4: 联调与测试验证
+- [ ] Task 4.1: 全链路联调：上传测试运维文档 -> 解析成功 -> 命中测试校验准确度。
+- [ ] Task 4.2: 智能体绑定知识库进行对话测试，验证日志排查问题是否优先基于知识库回答。
+- [ ] Task 4.3: 性能优化：针对长文档上传解析过程增加超时控制及失败重试机制。
